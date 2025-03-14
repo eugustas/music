@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar e Reproduzir Música</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #121212;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        header {
+            background-color: #1db954;
+            padding: 20px;
+            font-size: 3rem;
+            font-weight: 600;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+        }
+
+        .instagram-icon {
+            margin-top: 20px;
+        }
+
+        .instagram-icon a {
+            text-decoration: none;
+            color: #fff;
+            font-size: 2rem;
+            background-color: #e1306c;
+            border-radius: 50%;
+            padding: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .instagram-icon a:hover {
+            transform: scale(1.1);
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        input[type="text"] {
+            padding: 15px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 30px;
+            width: 60%;
+            background-color: #333;
+            color: white;
+            margin-top: 30px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            background-color: #444;
+            box-shadow: 0 0 10px rgba(29, 185, 84, 0.7);
+        }
+
+        .search-btn {
+            padding: 15px 20px;
+            font-size: 1rem;
+            background-color: #1db954;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background-color: #1aa34a;
+        }
+
+        .search-result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            word-wrap: break-word;
+            color: #fff;
+        }
+
+        .search-result p {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .search-result a {
+            color: #1db954;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .search-result a:hover {
+            text-decoration: underline;
+        }
+
+        .youtube-player iframe {
+            width: 100%;
+            height: 400px;
+            border: none;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                font-size: 2rem;
+            }
+
+            input[type="text"], .search-btn {
+                width: 100%;
+                margin-top: 15px;
+            }
+
+            .search-result p {
+                font-size: 1rem;
+            }
+
+            .youtube-player iframe {
+                height: 250px;
+            }
+
+            .audio-player {
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+            .then(function(registration) {
+                console.log('Service Worker registrado com sucesso:', registration);
+            })
+            .catch(function(error) {
+                console.log('Falha ao registrar o Service Worker:', error);
+            });
+        }
+    </script>
+
+    <header>
+        GUSTAVO BUSINESS
+    </header>
+
+    <div class="instagram-icon"></div>
+        <a href="https://www.instagram.com/eugustabusiness/" target="_blank" title="Siga no Instagram">
+            <i class="fab fa-instagram"></i>
+        </a>
+    </div>
+
+    <div class="container"></div>
+        <input type="text" id="searchQuery" placeholder="Pesquise por música..." onkeydown="checkEnter(event)">
+        <button class="search-btn" onclick="searchMusic()">Buscar Música</button>
+
+        <div id="searchResults" class="search-result"></div>
+        <div id="youtubePlayer" class="youtube-player"></div>
+        <div id="audioPlayer" class="audio-player"></div>
+    </div>
+
+    <script>
+        const youtubeAPIKey = 'AIzaSyBe7mqqcnffwm1xTD6cUGpaQ8umOTnGyTg';
+
+        async function searchMusic() {
+            const query = document.getElementById('searchQuery').value;
+
+            if (!query) {
+                alert('Digite o nome de uma música para buscar.');
+                return;
+            }
+
+            const youtubeSearchURL = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&key=${youtubeAPIKey}&type=video&maxResults=1`;
+
+            try {
+                const response = await fetch(youtubeSearchURL);
+                const data = await response.json();
+                
+                console.log(data);
+
+                if (data.items && data.items.length > 0) {
+                    const videoId = data.items[0].id.videoId;
+                    const videoTitle = data.items[0].snippet.title;
+                    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+                    document.getElementById('youtubePlayer').innerHTML = `
+                        <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    `;
+                    document.getElementById('audioPlayer').innerHTML = '';
+
+                    document.getElementById('searchResults').innerHTML = `
+                        <p><strong>Vídeo encontrado:</strong> ${videoTitle}</p>
+                        <p><a href="${videoUrl}" target="_blank">Ouça no YouTube</a></p>
+                    `;
+                } else {
+                    const mp3Url = 'https://www.example.com/audio/despacito.mp3';
+                    document.getElementById('audioPlayer').innerHTML = `
+                        <audio controls autoplay>
+                            <source src="${mp3Url}" type="audio/mp3">
+                            Seu navegador não suporta o elemento de áudio.
+                        </audio>
+                    `;
+                    document.getElementById('youtubePlayer').innerHTML = '';
+
+                    document.getElementById('searchResults').innerHTML = `
+                        <p><strong>Vídeo não encontrado. Tocando MP3 de fallback.</strong></p>
+                        <p><a href="${mp3Url}" target="_blank">Ouça o MP3</a></p>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('searchResults').innerHTML = '<p>Erro ao buscar no YouTube. Tente novamente mais tarde.</p>';
+                console.error('Erro na busca do YouTube:', error);
+            }
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                searchMusic();
+            }
+        }
+    </script>
+</body>
+</html>
